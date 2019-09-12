@@ -383,6 +383,39 @@ LOGFILE_HDR_3FIELDS = [
 ]
 LOGFILE_HDR_3SZ = struct.calcsize(LOGFILE_HDR_3FORMAT)
 
+# Redo Operation
+REDO_OP = {
+    0x0: 'Open Table',
+    0x1: 'Redo Insert Row',
+    0x2: 'Redo Delete Row',
+    0x3: 'Redo Update Row',
+    0x4: 'Redo Update Data with Root',
+    0x5: 'Redo Reparent Table',
+    0x6: 'Redo Allocate',
+    0x7: 'Redo Free',
+    0x8: 'Redo Set Range State (0x8)',
+    0x9: 'Redo Set Range State (0x9)',
+    0xA: 'Redo Duplicate Extents',
+    0xB: 'Redo Modify Stream Extent',
+    0xC: 'Redo Strip Metadata Stream Extent',
+    0xD: 'Redo Set Integrity',
+    0xE: 'Redo Set Parent Id',
+    0xF: 'Redo Delete Table',
+    0x10: 'Redo Value as Key',
+    0x11: 'Redo Add Schema',
+    0x12: 'Copy Key Helper (0x12)',
+    0x13: 'Redo Add Container',
+    0x14: 'Redo Move Container',
+    0x15: 'Copy Key Helper (0x15)',
+    0x16: 'Redo Cache Invalidation',
+    0x17: 'Redo Generate Checksum',
+    0x18: 'Redo Container Compression',
+    0x19: 'Redo Delete Compression Unit Offsets',
+    0x1A: 'Redo Add Compress Unit Offsets',
+    0x1B: 'Redo Ghost Extents',
+    0x1C: 'Redo Compaction Unreserve'
+}
+
 # FILE_TYPE
 FILE_TYPE_3 = {
     b'\x30\x00\x02\x00':'Directory',

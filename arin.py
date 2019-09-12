@@ -15,7 +15,7 @@
 @contact:   horensic@gmail.com
 """
 
-import sys
+import os, sys
 from PyQt5 import uic
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -33,7 +33,7 @@ class StdoutRedirect(QObject):
         QObject.__init__(self, None)
         self.daemon = True
         self.sysstdout = sys.stdout.write
-        self.sysstderr = sys.stderr.write
+        # self.sysstderr = sys.stderr.write
 
     def stop(self):
         sys.stdout.write = self.sysstdout
@@ -41,7 +41,7 @@ class StdoutRedirect(QObject):
 
     def start(self):
         sys.stdout.write = self.write
-        sys.stderr.write = lambda msg: self.write(msg, color='red')
+        # sys.stderr.write = lambda msg: self.write(msg, color='red')
 
     def write(self, s, color='black'):
         sys.stdout.flush()
@@ -60,22 +60,25 @@ class Arin(QMainWindow, form_class):
         self._stdout.print_occur.connect(lambda x: self._debug_view(x))
 
         self.image_path = ''
+        self.sh = None
 
     def initUI(self):
         self.actionOpen_Image.triggered.connect(self._open_image)
-        self.pB_shell.clicked.connect(self._shell)
+        self.actionExtract_Logfile.triggered.connect(self._extract_logfile)
+        self.pb_shell.clicked.connect(self._shell)
+        self.pb_logfile_parse.clicked.connect(self._parse_logfile)
         self.refs_browser_root = self.refs_browser.invisibleRootItem()
         self.show()
 
     def _debug_view(self, msg):
-        self.textBrowser.moveCursor(QTextCursor.End)
-        self.textBrowser.insertPlainText(msg)
+        self.debug_view.moveCursor(QTextCursor.End)
+        self.debug_view.insertPlainText(msg)
         QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
 
     def _open_image(self):
-        self.image_path = QFileDialog.getOpenFileName(caption="Open", filter="RAW/DD Image (*.001)")[0]
-        self.tE_image_path.clear()
-        self.tE_image_path.insertPlainText(self.image_path)
+        self.image_path = QFileDialog.getOpenFileName(self, caption="Open", filter="RAW/DD Image (*.001)")[0]
+        self.pte_image_path.clear()
+        self.pte_image_path.insertPlainText(self.image_path)
 
     def _shell(self):
         if self.image_path is '':
@@ -92,6 +95,52 @@ class Arin(QMainWindow, form_class):
             self._browser_insert(self.refs_browser_root, fs_meta)
             self._browser_insert(fs_meta, self.sh.refs.fs_meta)
             self._browser_insert(self.refs_browser_root, self.sh._cwd)
+
+    def _extract_logfile(self):
+        if self.sh is None:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("ReFS 이미지 오류")
+            msg.setText("ReFS 이미지를 먼저 분석해주세요")
+            msg.exec_()
+            return
+        else:
+            path = QFileDialog.getExistingDirectory(self, caption="Logfile Save")
+            logfile_name = os.path.join(path, 'Logfile')
+            with open(logfile_name, 'wb') as logfile:
+                logfile.write(self.sh.refs.logfile.log_data)
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("Logfile 추출 완료")
+            msg.setText("ReFS 이미지에서 Logfile 추출을 완료하였습니다")
+            msg.exec_()
+
+    def _extract_chgjrnl(self):
+        pass
+
+    def _parse_logfile(self):
+        if self.sh is None:
+            print("Hll")
+            return
+        else:
+            print("Hello?")
+            self.tb_logfile.setRowCount(0)
+
+            records = self.sh.parse_logfile()
+            for record in records:
+                row_pos = self.tb_logfile.rowCount()
+                self.tb_logfile.insertRow(row_pos)
+                self.tb_logfile.setItem(row_pos, 0, QTableWidgetItem(hex(record['lsn'])))
+                self.tb_logfile.setItem(row_pos, 1, QTableWidgetItem('N/A'))
+                self.tb_logfile.setItem(row_pos, 2, QTableWidgetItem('N/A'))
+                self.tb_logfile.setItem(row_pos, 3, QTableWidgetItem(record['opcode']))
+                self.tb_logfile.setItem(row_pos, 4, QTableWidgetItem(hex(record['rec_mark'])))
+                self.tb_logfile.setItem(row_pos, 5, QTableWidgetItem(hex(record['seq_no'])))
+                self.tb_logfile.setItem(row_pos, 6, QTableWidgetItem(hex(record['end_mark'])))
+                self.tb_logfile.setItem(row_pos, 7, QTableWidgetItem('N/A'))
+
+    def _parse_chgjrnl(self):
+        pass
 
     def _browser_insert(self, parent, cwd):
         if isinstance(cwd, QTreeWidgetItem):

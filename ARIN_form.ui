@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1121</width>
-    <height>811</height>
+    <width>1151</width>
+    <height>852</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -31,56 +31,133 @@
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <property name="spacing">
-         <number>6</number>
+       <widget class="QGroupBox" name="groupBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <property name="sizeConstraint">
-         <enum>QLayout::SetDefaultConstraint</enum>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>150</height>
+         </size>
         </property>
-        <property name="bottomMargin">
-         <number>0</number>
+        <property name="title">
+         <string>Source</string>
         </property>
-        <item>
-         <widget class="QLabel" name="label_4">
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>25</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>ReFS Image Path</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QTextEdit" name="tE_image_path">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>25</height>
-           </size>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pB_shell">
-          <property name="text">
-           <string>ReFShell</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="6" column="1">
+          <widget class="QPlainTextEdit" name="pte_chgjrnl">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QToolButton" name="toolButton_3">
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>ReFS Image </string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>Change Journal</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QPlainTextEdit" name="pte_image_path">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QPlainTextEdit" name="pte_logfile">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Logfile</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QPushButton" name="pb_shell">
+           <property name="text">
+            <string>ReFShell</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QToolButton" name="toolButton">
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QPushButton" name="pb_logfile_parse">
+           <property name="text">
+            <string>Parse</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="2">
+          <widget class="QToolButton" name="toolButton_2">
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="3">
+          <widget class="QPushButton" name="pb_chgjrnl_parse">
+           <property name="text">
+            <string>Parse</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </item>
       <item>
        <widget class="Line" name="line">
@@ -90,75 +167,129 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>ReFS Browser</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QTreeWidget" name="refs_browser">
-        <column>
-         <property name="text">
-          <string>Name</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Size</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Type</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>LCN</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Offset</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Time</string>
-         </property>
-        </column>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>[Developer Option] STDOUT &amp; LOG View</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QTextBrowser" name="textBrowser"/>
-      </item>
-      <item>
        <widget class="QTabWidget" name="tabWidget">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
+        </property>
+        <property name="tabsClosable">
+         <bool>true</bool>
+        </property>
+        <property name="movable">
+         <bool>true</bool>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
-          <string>Logfile</string>
+          <string>Browser</string>
          </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QTreeWidget" name="refs_browser">
+            <column>
+             <property name="text">
+              <string>Name</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Size</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Type</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>LCN</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Offset</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Reserved</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
         </widget>
         <widget class="QWidget" name="tab_2">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <attribute name="title">
-          <string>Change Journal</string>
+          <string>Logfile</string>
          </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <item>
+           <widget class="QTableWidget" name="tb_logfile">
+            <property name="alternatingRowColors">
+             <bool>false</bool>
+            </property>
+            <property name="sortingEnabled">
+             <bool>true</bool>
+            </property>
+            <column>
+             <property name="text">
+              <string>LSN</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Transaction Time</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Event</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Redo Op</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Record mark</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Seq No</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>End mark</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>File Name</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
         </widget>
         <widget class="QWidget" name="tab_3">
          <attribute name="title">
-          <string>Container</string>
+          <string>Change Journal</string>
          </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <item>
+           <widget class="QColumnView" name="columnView_2"/>
+          </item>
+         </layout>
         </widget>
        </widget>
       </item>
@@ -171,7 +302,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1121</width>
+     <width>1151</width>
      <height>21</height>
     </rect>
    </property>
@@ -194,14 +325,23 @@
     <property name="title">
      <string>Option</string>
     </property>
+    <addaction name="actionDebug_Level"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
      <string>View</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionExtract_Logfile"/>
+    <addaction name="actionExtract_Change_Journal"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
+   <addaction name="menuTools"/>
    <addaction name="menuOption"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -214,7 +354,7 @@
    <property name="minimumSize">
     <size>
      <width>300</width>
-     <height>131</height>
+     <height>318</height>
     </size>
    </property>
    <property name="floating">
@@ -241,7 +381,45 @@
         </widget>
        </item>
        <item>
-        <widget class="QTableView" name="tableView"/>
+        <widget class="QTableView" name="tableView">
+         <property name="textElideMode">
+          <enum>Qt::ElideRight</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget">
+   <property name="minimumSize">
+    <size>
+     <width>91</width>
+     <height>150</height>
+    </size>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::BottomDockWidgetArea|Qt::TopDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>ARIN Debug View</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QVBoxLayout" name="verticalLayout_5">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QTextBrowser" name="debug_view"/>
        </item>
       </layout>
      </item>
@@ -266,6 +444,21 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionDebug_Level">
+   <property name="text">
+    <string>Debug Level</string>
+   </property>
+  </action>
+  <action name="actionExtract_Logfile">
+   <property name="text">
+    <string>Extract Logfile</string>
+   </property>
+  </action>
+  <action name="actionExtract_Change_Journal">
+   <property name="text">
+    <string>Extract Change Journal</string>
    </property>
   </action>
  </widget>

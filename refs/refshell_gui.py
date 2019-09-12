@@ -44,3 +44,9 @@ class ReFSGUIShell:
         if self.refs.root_dir():
             refshell_log.info("ReFS GUI Shell is Root")
             self._cwd = self.refs.root
+
+    def parse_logfile(self):
+        return self.refs.logfile.parse_logfile()
+
+    def extract_chgjrnl(self):
+        pass

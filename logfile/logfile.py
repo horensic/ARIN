@@ -16,17 +16,22 @@
 """
 
 import io
-import mmap
+# import mmap
 from logfile.mlog_type import *
 
 
 class LogEntry:
 
-    def __init__(self, entry):
-        self.entry = mmap.mmap(entry, length=0x1000, access=mmap.ACCESS_READ)
+    def __init__(self, entry, entry_type='data'):
+        # self.entry = mmap.mmap(entry, length=0x1000, access=mmap.ACCESS_READ)
+        self.entry = entry
         self.entry_header = self.parse_entry_header(self.entry)
+        # TODO: 시그니처 검사 추가
         self.log_header = self.parse_log_header(self.entry)
-        self.log_record = self.parse_log_record(self.entry)
+        if entry_type is 'data':
+            self.log_record = self.parse_log_record(self.entry)
+        if entry_type is 'control':
+            self.info = self.parse_log_control(self.entry)
 
     def __del__(self):
         self._end()
@@ -58,6 +63,10 @@ class LogEntry:
             log_record.append(RedoRecord(record, record_size))
 
         return log_record
+
+    def parse_log_control(self, entry):
+        buf = entry.read(0x50)
+        return dict(zip(REFS_LOG_CTRL_INFO_FIELDS, struct.unpack(REFS_LOG_CTRL_INFO_FORMAT, buf)))
 
 
 class RedoRecord:

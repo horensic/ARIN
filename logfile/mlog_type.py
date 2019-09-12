@@ -51,6 +51,17 @@ if REFS_LOG_HDR_SZ != 0x38:
     print("REFS Log header size not match!")
     exit(-1)
 
+# Log Control Info
+REFS_LOG_CTRL_INFO_FORMAT = '<5Q16s2I2Q'
+REFS_LOG_CTRL_INFO_FIELDS = [
+    'unknown1', 'base_offset',
+    'unknown2', 'next_lsn',
+    'next_lsn?', 'uuid',
+    'control', 'unknown3',
+    'unknown4', 'unknown5'
+]
+REFS_LOG_CTRL_INFO_SZ = struct.calcsize(REFS_LOG_CTRL_INFO_FORMAT)
+
 # Redo Record Header
 REFS_REDO_REC_HDR_FORMAT = '<6I2Q4I'
 REFS_REDO_REC_HDR_FIELDS = [
