@@ -40,6 +40,7 @@ class LogEntry:
         return "LogEntry"
 
     def _end(self):
+        # TODO: 파일의 경우 closed 검사를 하는 것이므로 수정이 필요
         if self.entry.closed is False:
             self.entry.close()
 

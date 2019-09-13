@@ -40,6 +40,7 @@ class ReFSGUIShell:
         self.refs = ReFS(vol)
         self.refs.read_volume()
         self.refs.file_system_metadata()
+        self.refs.chgjrnl_info()
         self.refs.logfile_info()
         if self.refs.root_dir():
             refshell_log.info("ReFS GUI Shell is Root")
@@ -48,5 +49,10 @@ class ReFSGUIShell:
     def parse_logfile(self):
         return self.refs.logfile.parse_logfile()
 
-    def extract_chgjrnl(self):
-        pass
+    def parse_chgjrnl(self):
+        return self.refs.change_journal.parse_chgjrnl()
+
+    def translate_lcn(self, LCN):
+        lcn = int(LCN)
+        LCNTuple = [lcn, lcn+1, lcn+2, lcn+3]
+        print(self.refs.translate_lcn(LCNTuple))

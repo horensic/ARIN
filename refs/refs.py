@@ -20,6 +20,7 @@ import refs.logger as logger
 from refs.error import *
 from refs.refs_type import *
 from logfile.logfile import LogEntry
+from chgjrnl.change_journal import USNRecordV3
 from datetime import datetime, timedelta
 
 refs_log = logger.ArinLog("ReFS", level=logger.LOG_TRACE | logger.LOG_DEBUG | logger.LOG_INFO)
@@ -66,6 +67,8 @@ class ReFSv3:
 
         self.root = None
         self.fs_meta = None
+        self.logfile = None
+        self.change_journal = None
 
     def __repr__(self):
         return 'ReFS_V3'
@@ -120,7 +123,13 @@ class ReFSv3:
             self.logfile = Logfile(self.vol, self.cluster, self.logfile_info)
             return True
 
-    def read_file(self, metadata):
+    def chgjrnl_info(self):
+        if self.fs_meta:
+            if 'Change Journal' in self.fs_meta.table:
+                chgjrnl_data = self.read_file(self.fs_meta.table['Change Journal'], full_size=True)
+                self.change_journal = ChangeJournal(chgjrnl_data)
+
+    def read_file(self, metadata, full_size=None):
         file_data = []
 
         refs_log.debug(f"File Directory Entry: {metadata}")
@@ -139,7 +148,11 @@ class ReFSv3:
                 file_offset = self.translate_lcn(file_lcn)
                 # file_size = int(attr_data['file_size'])
                 self.vol.seek(file_offset * self.cluster)
-                file_data.append(self.vol.read(0x200))
+                if full_size:
+                    cluster_count = attr_data['end_vcn']
+                    file_data.append(self.vol.read(cluster_count * self.cluster))
+                else:
+                    file_data.append(self.vol.read(0x200))
                 # self.vol.read(file_size)
 
             if '$ADS' in refs_reg_file.attributes:
@@ -562,11 +575,7 @@ class Logfile:
 
     def control_area(self, control, control_buf):
         self.log_control = LogEntry(control, entry_type='control')
-        for k, v in self.log_control.info.items():
-            print(k, v)
         self.log_control_dup = LogEntry(control_buf, entry_type='control')
-        for k, v in self.log_control_dup.info.items():
-            print(k, v)
         # Select control and return data_area offset
         # Logfile을 별도로 추출하는 부분에 대해서 고려하기
 
@@ -604,7 +613,45 @@ class Logfile:
                     record['seq_no'] = tx.header['seq_no']
                     record['end_mark'] = tx.header['end_mark']
                     records.append(record)
-                    print(record)
+
+        return records
+
+
+class ChangeJournal:
+
+    def __init__(self, jnrl_buf):
+        self.chgjrnl_data = self.merge_data(jnrl_buf)
+
+    def merge_data(self, jrnl_buf):
+        tmp = bytes()
+        for buf in jrnl_buf:
+            tmp += buf
+        return tmp
+
+    def parse_chgjrnl(self):
+        records = []
+        jrnl_data = io.BytesIO(self.chgjrnl_data)
+
+        # 원형 버퍼 이므로 레코드가 시작되는 위치를 이해하고 있어야 함
+        # 파일의 처음 시작이 처음이 아닐 수 있음
+        while True:
+            ward = jrnl_data.tell()
+            rec_len = struct.unpack('<I', jrnl_data.read(4))[0]
+            if rec_len == 0 or not rec_len:
+                break
+            jrnl_data.seek(ward)
+            jrnl_rec = USNRecordV3(jrnl_data.read(rec_len))
+
+            record = dict()
+            record['usn'] = jrnl_rec.record['usn']
+            record['timestamp'] = jrnl_rec.record['timestamp']
+            record['name'] = jrnl_rec.record['name']
+            record['reason'] = jrnl_rec.record['reason']
+            record['source_info'] = jrnl_rec.record['source_info']
+            record['file_attribute'] = jrnl_rec.record['file_attribute']
+            record['file_ref_no'] = jrnl_rec.record['file_reference_number']
+            record['parent_ref_no'] = jrnl_rec.record['parent_file_reference_number']
+            records.append(record)
 
         return records
 
@@ -831,6 +878,7 @@ class ReFSRegFile(Page):
                         refs_log.debug(f"{hex(attr_type)} {attr_name.decode('utf-16')}")
                         self.attributes['$DATA'] = self.parse_attribute(io.BytesIO(row['value']), 0)
                         # TODO: 큰 사이즈의 파일 할당의 경우, 어떻게 되는지 확인하기
+                        refs_log.debug(f"$DATA Attribute: {self.attributes['$DATA']}")
 
                     elif attr_type == REFS_V3_ATTR_ADS:  ## 0xB0
                         refs_log.debug(f"{hex(attr_type)} {attr_name.decode('utf-16')}")

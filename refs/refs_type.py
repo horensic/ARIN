@@ -477,9 +477,9 @@ REFS_ATTR_DATA_3FIELDS = [
     'LCN',
     '_unknown1',
     '_unknown2',
-    '_unknown3',
-    '_unknown4',
-    '_unknown5'
+    'prev_vcn',
+    'start_vcn',
+    'end_vcn'
 ]
 REFS_ATTR_DATA_3SZ = struct.calcsize(REFS_ATTR_DATA_3FORMAT)
 

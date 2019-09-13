@@ -33,7 +33,7 @@ class StdoutRedirect(QObject):
         QObject.__init__(self, None)
         self.daemon = True
         self.sysstdout = sys.stdout.write
-        # self.sysstderr = sys.stderr.write
+        self.sysstderr = sys.stderr.write
 
     def stop(self):
         sys.stdout.write = self.sysstdout
@@ -41,7 +41,7 @@ class StdoutRedirect(QObject):
 
     def start(self):
         sys.stdout.write = self.write
-        # sys.stderr.write = lambda msg: self.write(msg, color='red')
+        sys.stderr.write = lambda msg: self.write(msg, color='red')
 
     def write(self, s, color='black'):
         sys.stdout.flush()
@@ -63,11 +63,22 @@ class Arin(QMainWindow, form_class):
         self.sh = None
 
     def initUI(self):
+        # Open Image
         self.actionOpen_Image.triggered.connect(self._open_image)
-        self.actionExtract_Logfile.triggered.connect(self._extract_logfile)
+        self.tbt_open_image.clicked.connect(self._open_image)
+        # Image Parsing
         self.pb_shell.clicked.connect(self._shell)
-        self.pb_logfile_parse.clicked.connect(self._parse_logfile)
         self.refs_browser_root = self.refs_browser.invisibleRootItem()
+        self.refs_browser.itemClicked.connect(self._click_shell_item)
+        # Logfile
+        self.actionExtract_Logfile.triggered.connect(self._extract_logfile)
+        self.pb_logfile_parse.clicked.connect(self._parse_logfile)
+        # Change Journal
+        self.actionExtract_Change_Journal.triggered.connect(self._extract_chgjrnl)
+        self.pb_chgjrnl_parse.clicked.connect(self._parse_chgjrnl)
+        # shell
+        self.pb_sh_cmd.clicked.connect(self._shell_cmd)
+
         self.show()
 
     def _debug_view(self, msg):
@@ -90,11 +101,31 @@ class Arin(QMainWindow, form_class):
             return
         else:
             self.sh = ReFSGUIShell(self.image_path)
+            # Logfile & ChgJrnl
+            self.pte_logfile.insertPlainText('Logfile')
+            self.pte_chgjrnl.insertPlainText('File System Metadata/Change Journal')
             # TODO: 브라우저를 다루기 위한 별도의 클래스 정의? 디렉터리 구조 잘 보여줄 수 있도록 ReFShell 재설계 고려
             fs_meta = self._browser_item(name='File System Metadata', type='DIR')
             self._browser_insert(self.refs_browser_root, fs_meta)
             self._browser_insert(fs_meta, self.sh.refs.fs_meta)
             self._browser_insert(self.refs_browser_root, self.sh._cwd)
+
+    def _shell_cmd(self):
+        if self.sh is None:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("ReFS 이미지 오류")
+            msg.setText("ReFS 이미지를 먼저 분석해주세요")
+            msg.exec_()
+            return
+        else:
+            lcn = int(self.sh_cmd.text())
+            self.sh.translate_lcn(lcn)
+
+    @pyqtSlot(QTreeWidgetItem, int)
+    def _click_shell_item(self, it, col):
+        print(it, col, it.text(col))
+
 
     def _extract_logfile(self):
         if self.sh is None:
@@ -116,14 +147,28 @@ class Arin(QMainWindow, form_class):
             msg.exec_()
 
     def _extract_chgjrnl(self):
-        pass
+        if self.sh is None:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("ReFS 이미지 오류")
+            msg.setText("ReFS 이미지를 먼저 분석해주세요")
+            msg.exec_()
+            return
+        else:
+            path = QFileDialog.getExistingDirectory(self, caption="Change Journal Save")
+            chgjrnl_name = os.path.join(path, 'Change Journal')
+            with open(chgjrnl_name, 'wb') as chgjrnl:
+                chgjrnl.write(self.sh.refs.change_journal.chgjrnl_data)
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("Change Journal 추출 완료")
+            msg.setText("ReFS 이미지에서 Change Journal 추출을 완료하였습니다")
+            msg.exec_()
 
     def _parse_logfile(self):
         if self.sh is None:
-            print("Hll")
             return
         else:
-            print("Hello?")
             self.tb_logfile.setRowCount(0)
 
             records = self.sh.parse_logfile()
@@ -140,7 +185,23 @@ class Arin(QMainWindow, form_class):
                 self.tb_logfile.setItem(row_pos, 7, QTableWidgetItem('N/A'))
 
     def _parse_chgjrnl(self):
-        pass
+        if self.sh is None:
+            return
+        else:
+            self.tb_chgjrnl.setRowCount(0)
+
+            records = self.sh.parse_chgjrnl()
+            for record in records:
+                row_pos = self.tb_chgjrnl.rowCount()
+                self.tb_chgjrnl.insertRow(row_pos)
+                self.tb_chgjrnl.setItem(row_pos, 0, QTableWidgetItem(hex(record['usn'])))
+                self.tb_chgjrnl.setItem(row_pos, 1, QTableWidgetItem(str(record['timestamp'])))
+                self.tb_chgjrnl.setItem(row_pos, 2, QTableWidgetItem(record['name']))
+                self.tb_chgjrnl.setItem(row_pos, 3, QTableWidgetItem(hex(record['reason'])))
+                self.tb_chgjrnl.setItem(row_pos, 4, QTableWidgetItem(hex(record['source_info'])))
+                self.tb_chgjrnl.setItem(row_pos, 5, QTableWidgetItem(hex(record['file_attribute'])))
+                self.tb_chgjrnl.setItem(row_pos, 6, QTableWidgetItem('N/A'))# hex(record['file_ref_no'])))
+                self.tb_chgjrnl.setItem(row_pos, 7, QTableWidgetItem('N/A'))# hex(record['parent_ref_no'])))
 
     def _browser_insert(self, parent, cwd):
         if isinstance(cwd, QTreeWidgetItem):
