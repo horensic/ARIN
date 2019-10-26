@@ -15,9 +15,10 @@
 @contact:   horensic@gmail.com
 """
 
-import io
+import io, sys
 # import mmap
 from logfile.mlog_type import *
+from logfile.error import *
 
 
 class LogEntry:
@@ -26,7 +27,8 @@ class LogEntry:
         # self.entry = mmap.mmap(entry, length=0x1000, access=mmap.ACCESS_READ)
         self.entry = entry
         self.entry_header = self.parse_entry_header(self.entry)
-        # TODO: 시그니처 검사 추가
+        if self.entry_header['signature'] != b'MLog':
+            raise InvalidLogEntrySignatureError
         self.log_header = self.parse_log_header(self.entry)
         if entry_type is 'data':
             self.log_record = self.parse_log_record(self.entry)
@@ -56,7 +58,9 @@ class LogEntry:
         log_record = []
         record_buf = io.BytesIO(entry.read(self.log_header['data_size']))
 
-        while(True):
+        while (True):
+            if record_buf.tell() == self.log_header['data_size']:  # End of Entry
+                break
             record_size, flag = struct.unpack('<2I', record_buf.read(8))
             if record_size == 0x0:
                 break

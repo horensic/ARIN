@@ -202,13 +202,13 @@ CHKP_3SZ = struct.calcsize(CHKP_3FORMAT)
 
 OBJ_ID_3 = {
     0x1: '$ATTRIBUTE_LIST',
-    0x2: '$Object Table',
-    0x3: '$OBJECT',
+    0x2: 'Object Table',
+    0x3: 'Parent Child Table',
     0x4: 'New_Metadata(1)',
     0x5: 'New_Metadata(2)',
     0x6: 'New_Metadata(3)',
-    0xB: 'New_Metadata(4)',
-    0xC: '$ALLOCATOR_SML',
+    0xB: 'Container Table',
+    0xC: 'Container Table (dup)',
     0xD: '$ALLOCATOR_MED',
     0xE: '$ALLOCATOR_LRG',
     0xF: 'New_Metadata(5)',
@@ -359,12 +359,12 @@ OBJECT_ROW_3SZ = struct.calcsize(OBJECT_ROW_3FORMAT)
 # Logfile Information Table
 LOGFILE_INFO_ROW_3FORMAT = '<6Q'
 LOGFILE_INFO_ROW_3FIELDS = [
-    '_unknown1',
-    '_unknown2',
-    '_unknown3',
-    'LOGFILE_INFO_LCN',
-    'LOGFILE_INFO_LCN (dup)',
-    '_unknown4'
+    'start_offset',
+    'end_offset',
+    'logfile_size',
+    'LOGFILE_CTRL_LCN',
+    'LOGFILE_CTRL_LCN (dup)',
+    '_unknown'
 ]
 LOGFILE_INFO_ROW_3SZ = struct.calcsize(LOGFILE_INFO_ROW_3FORMAT)
 
@@ -455,7 +455,7 @@ REG_TYPE_ENTRY_3FIELDS = [
     'AccessTime',
     'ModifiedTime',
     'EntryTime',
-    '_unknown3',
+    'file_attribute',
     '_unknown4',
     '_unknown5',
     '_unknown6',
@@ -489,12 +489,13 @@ type = Regular file (0x1), Directory (0x2), ??? (0x8000)
 """
 #TODO: 심볼릭 링크 파일, 아카이브 파일은 플래그 어떻게 나타나는지 확인하기
 
-REFS_V3_FLAG_INDEX = 0x10
-REFS_V3_FLAG_DELETED = 0x20
-REFS_V3_FLAG_LIVE = 0x30
+REFS_V3_FLAG_DIR_INDEX = 0x10
+REFS_V3_FLAG_FILE_INDEX = 0x20
+REFS_V3_FLAG_FILE_RECORD = 0x30
 
 REFS_V3_TYPE_REG = 0x1
 REFS_V3_TYPE_DIR = 0x2
+REFS_V3_TYPE_AAA = 0x8000
 
 REFS_V3_ATTR_DATA = 0x80
 REFS_V3_ATTR_INDEX_ROOT = 0x90

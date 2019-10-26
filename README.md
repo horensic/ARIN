@@ -13,4 +13,4 @@ ARIN은 ReFS의 로그 파일인 Change Journal과 Logfile을 수집하고 분�
 
 ## Acknowledgements
 
-dailyjunoat
+김준호 (DFRC, Korea Univ)

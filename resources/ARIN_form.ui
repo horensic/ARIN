@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1151</width>
-    <height>852</height>
+    <width>961</width>
+    <height>699</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,8 +19,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>1100</width>
-    <height>800</height>
+    <width>900</width>
+    <height>600</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -135,7 +135,7 @@
           </widget>
          </item>
          <item row="3" column="2">
-          <widget class="QToolButton" name="toolButton">
+          <widget class="QToolButton" name="tbt_open_logfile">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -155,7 +155,7 @@
           </widget>
          </item>
          <item row="6" column="2">
-          <widget class="QToolButton" name="toolButton_2">
+          <widget class="QToolButton" name="tbt_open_chgjrnl">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -190,7 +190,7 @@
          <bool>true</bool>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
         <property name="tabsClosable">
          <bool>true</bool>
@@ -198,47 +198,6 @@
         <property name="movable">
          <bool>true</bool>
         </property>
-        <widget class="QWidget" name="tab">
-         <attribute name="title">
-          <string>Browser</string>
-         </attribute>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
-          <item>
-           <widget class="QTreeWidget" name="refs_browser">
-            <column>
-             <property name="text">
-              <string>Name</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>Size</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>Type</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>LCN</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>Offset</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>Reserved</string>
-             </property>
-            </column>
-           </widget>
-          </item>
-         </layout>
-        </widget>
         <widget class="QWidget" name="tab_2">
          <property name="enabled">
           <bool>true</bool>
@@ -255,6 +214,12 @@
             <property name="sortingEnabled">
              <bool>true</bool>
             </property>
+            <attribute name="verticalHeaderVisible">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="verticalHeaderDefaultSectionSize">
+             <number>23</number>
+            </attribute>
             <attribute name="verticalHeaderStretchLastSection">
              <bool>true</bool>
             </attribute>
@@ -262,40 +227,104 @@
              <property name="text">
               <string>LSN</string>
              </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
+             </property>
             </column>
             <column>
              <property name="text">
               <string>Transaction Time</string>
+             </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
              </property>
             </column>
             <column>
              <property name="text">
               <string>Event</string>
              </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
+             </property>
             </column>
             <column>
              <property name="text">
               <string>Redo Op</string>
+             </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
              </property>
             </column>
             <column>
              <property name="text">
               <string>Record mark</string>
              </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
+             </property>
             </column>
             <column>
              <property name="text">
               <string>Seq No</string>
+             </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
              </property>
             </column>
             <column>
              <property name="text">
               <string>End mark</string>
              </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
+             </property>
             </column>
             <column>
              <property name="text">
               <string>File Name</string>
+             </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Creation Time</string>
+             </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Modified Time</string>
+             </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Changed Time</string>
+             </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Accessed Time</string>
+             </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>File LCN</string>
+             </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
              </property>
             </column>
            </widget>
@@ -309,6 +338,12 @@
          <layout class="QVBoxLayout" name="verticalLayout_8">
           <item>
            <widget class="QTableWidget" name="tb_chgjrnl">
+            <attribute name="verticalHeaderVisible">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="verticalHeaderDefaultSectionSize">
+             <number>23</number>
+            </attribute>
             <column>
              <property name="text">
               <string>USN</string>
@@ -364,7 +399,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1151</width>
+     <width>961</width>
      <height>21</height>
     </rect>
    </property>
@@ -372,8 +407,17 @@
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menuExport">
+     <property name="title">
+      <string>Export</string>
+     </property>
+     <addaction name="actionCSV"/>
+     <addaction name="actionSQLite"/>
+    </widget>
     <addaction name="actionOpen_Image"/>
     <addaction name="actionOpen_Drive"/>
+    <addaction name="separator"/>
+    <addaction name="menuExport"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -383,28 +427,16 @@
     </property>
     <addaction name="actionAbout"/>
    </widget>
-   <widget class="QMenu" name="menuOption">
-    <property name="title">
-     <string>Option</string>
-    </property>
-    <addaction name="actionDebug_Level"/>
-   </widget>
-   <widget class="QMenu" name="menuView">
-    <property name="title">
-     <string>View</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
      <string>Tools</string>
     </property>
     <addaction name="actionExtract_Logfile"/>
     <addaction name="actionExtract_Change_Journal"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuView"/>
    <addaction name="menuTools"/>
-   <addaction name="menuOption"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
@@ -416,11 +448,14 @@
    <property name="minimumSize">
     <size>
      <width>300</width>
-     <height>318</height>
+     <height>321</height>
     </size>
    </property>
    <property name="floating">
     <bool>false</bool>
+   </property>
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
@@ -438,15 +473,43 @@
        <item>
         <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>Reserved</string>
+          <string>Logfile Information Table</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QTableView" name="tableView">
-         <property name="textElideMode">
-          <enum>Qt::ElideRight</enum>
+        <widget class="QTreeWidget" name="tw_loginfo">
+         <column>
+          <property name="text">
+           <string>Field</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Value</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Logfile</string>
          </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTreeWidget" name="treeWidget_2">
+         <column>
+          <property name="text">
+           <string>Field</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Value</string>
+          </property>
+         </column>
         </widget>
        </item>
       </layout>
@@ -454,58 +517,49 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="dockWidget">
-   <property name="minimumSize">
-    <size>
-     <width>265</width>
-     <height>170</height>
-    </size>
+  <widget class="QDockWidget" name="dockWidget_4">
+   <property name="floating">
+    <bool>false</bool>
    </property>
    <property name="allowedAreas">
-    <set>Qt::BottomDockWidgetArea|Qt::TopDockWidgetArea</set>
+    <set>Qt::BottomDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>ARIN Debug View</string>
+    <string>ARIN Debug</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>8</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout_5">
+   <widget class="QWidget" name="dockWidgetContents_4">
+    <layout class="QVBoxLayout" name="verticalLayout_4">
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
-       <property name="topMargin">
-        <number>0</number>
+      <widget class="QTextEdit" name="debug_view">
+       <property name="undoRedoEnabled">
+        <bool>false</bool>
        </property>
-       <property name="bottomMargin">
-        <number>0</number>
+       <property name="readOnly">
+        <bool>true</bool>
        </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
-        <widget class="QTextBrowser" name="debug_view"/>
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>ReFShell &gt;</string>
+         </property>
+        </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <property name="bottomMargin">
-          <number>0</number>
+        <widget class="QLineEdit" name="sh_cmd"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pb_sh_cmd">
+         <property name="text">
+          <string>Command</string>
          </property>
-         <item>
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>ReFShell &gt;</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="sh_cmd"/>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pb_sh_cmd">
-           <property name="text">
-            <string>Command</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        </widget>
        </item>
       </layout>
      </item>
@@ -515,11 +569,6 @@
   <action name="actionOpen_Image">
    <property name="text">
     <string>Open Image</string>
-   </property>
-  </action>
-  <action name="actionOpen_Drive">
-   <property name="text">
-    <string>Open Drive</string>
    </property>
   </action>
   <action name="actionExit">
@@ -547,7 +596,38 @@
     <string>Extract Change Journal</string>
    </property>
   </action>
+  <action name="actionCSV">
+   <property name="text">
+    <string>CSV</string>
+   </property>
+  </action>
+  <action name="actionSQLite">
+   <property name="text">
+    <string>SQLite</string>
+   </property>
+  </action>
+  <action name="actionOpen_Drive">
+   <property name="text">
+    <string>Open Drive</string>
+   </property>
+  </action>
  </widget>
+ <tabstops>
+  <tabstop>pte_image_path</tabstop>
+  <tabstop>tbt_open_image</tabstop>
+  <tabstop>pb_shell</tabstop>
+  <tabstop>pte_logfile</tabstop>
+  <tabstop>tbt_open_logfile</tabstop>
+  <tabstop>pb_logfile_parse</tabstop>
+  <tabstop>pte_chgjrnl</tabstop>
+  <tabstop>tbt_open_chgjrnl</tabstop>
+  <tabstop>pb_chgjrnl_parse</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>tb_logfile</tabstop>
+  <tabstop>tb_chgjrnl</tabstop>
+  <tabstop>tw_loginfo</tabstop>
+  <tabstop>treeWidget_2</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
  <designerdata>

@@ -20,10 +20,13 @@ import refs.logger as logger
 from refs.error import *
 from refs.refs_type import *
 from logfile.logfile import LogEntry
+from logfile.error import *
 from chgjrnl.change_journal import USNRecordV3
 from datetime import datetime, timedelta
 
-refs_log = logger.ArinLog("ReFS", level=logger.LOG_TRACE | logger.LOG_DEBUG | logger.LOG_INFO)
+# refs_log = logger.ArinLog("ReFS", level=logger.LOG_TRACE | logger.LOG_DEBUG | logger.LOG_INFO)
+# refs_log = logger.ArinLog("ReFS", level=logger.LOG_DEBUG | logger.LOG_INFO)
+refs_log = logger.ArinLog("ReFS", level=logger.LOG_INFO)
 # carpe_refs_log = logger.CarpeLog("ReFS", level=logger.LOG_INFO)
 
 
@@ -97,7 +100,7 @@ class ReFSv3:
             root_dir = self.translate_lcn(root_obj['LCNTuple'])
             refs_log.debug("Root Offset: {0}".format(root_dir))
 
-            self.root = ReFSDirectory(self.vol, self.cluster, root_dir)
+            self.root = ReFSDirectory(self.vol, self.cluster, self, root_dir)
             return True
 
     def file_system_metadata(self):
@@ -108,7 +111,7 @@ class ReFSv3:
             fs_meta = self.translate_lcn(fs_meta_obj['LCNTuple'])
             refs_log.debug("FS Meta Offset: {0}".format(fs_meta))
 
-            self.fs_meta = ReFSDirectory(self.vol, self.cluster, fs_meta)
+            self.fs_meta = ReFSDirectory(self.vol, self.cluster, None, fs_meta)
             return True
 
     def logfile_info(self):
@@ -119,8 +122,8 @@ class ReFSv3:
             logfile_info = self.translate_lcn(logfile_info_obj['LCNTuple'])
             refs_log.debug("Logfile Info Offset: {0}".format(logfile_info))
 
-            self.logfile_info = LogfileInformationTable(self.vol, self.cluster, self.translate_lcn, logfile_info)
-            self.logfile = Logfile(self.vol, self.cluster, self.logfile_info)
+            self.logfile_information = LogfileInformationTable(self.vol, self.cluster, self.translate_lcn, logfile_info)
+            self.logfile = Logfile(self.vol, self.cluster, self.logfile_information)
             return True
 
     def chgjrnl_info(self):
@@ -128,6 +131,7 @@ class ReFSv3:
             if 'Change Journal' in self.fs_meta.table:
                 chgjrnl_data = self.read_file(self.fs_meta.table['Change Journal'], full_size=True)
                 self.change_journal = ChangeJournal(chgjrnl_data)
+                return True
 
     def read_file(self, metadata, full_size=None):
         file_data = []
@@ -216,7 +220,7 @@ class ReFSv3:
         if self.object_table.table:
             refs_log.debug(f"cd {self.translate_lcn(obj['LCNTuple'])}")
             change_dir = self.translate_lcn(obj['LCNTuple'])
-            return ReFSDirectory(self.vol, self.cluster, change_dir)
+            return ReFSDirectory(self.vol, self.cluster, None, change_dir)
 
 
 class FSMetaPage:
@@ -270,7 +274,8 @@ class Page:
 
         if table_desc_size == 0x8:
             # No Information
-            pass
+            self.table_descriptor = None
+            return
 
         if table_desc_size >= 0x28:
             self.table_descriptor = dict(zip(TABLE_DESC_3FILEDS,
@@ -556,63 +561,90 @@ class Logfile:
 
         def read_entry(vol, cluster, LCN):
             if isinstance(LCN, int):
-                buf = bytes()
+                entry = bytes()
                 offset = LCN * cluster
                 vol.seek(offset)
-                buf += vol.read(cluster)
-                buf = io.BytesIO(buf)
+                entry += vol.read(cluster)
+                entry = io.BytesIO(entry)
 
-                return buf
+                return entry
 
-        control_entry = log_info.children_table[0].table[1]['LOGFILE_INFO_LCN']
-        control_entry_buf = read_entry(vol, cluster, control_entry)
+        self.log_data = bytes()
+        control_entry_buf = []
 
-        control_entry_dup = log_info.children_table[0].table[1]['LOGFILE_INFO_LCN (dup)']
-        control_entry_buf_dup = read_entry(vol, cluster, control_entry_dup)
+        control_entry_lcn = log_info.children_table[0].table[1]['LOGFILE_CTRL_LCN']
+        control_entry_buf.append(read_entry(vol, cluster, control_entry_lcn))
 
-        self.control_area(control_entry_buf, control_entry_buf_dup)
+        control_entry_dup_lcn = log_info.children_table[0].table[1]['LOGFILE_CTRL_LCN (dup)']
+        control_entry_buf.append(read_entry(vol, cluster, control_entry_dup_lcn))
+
+        self.control_area(control_entry_buf)
         self.data_area(vol, cluster)
 
-    def control_area(self, control, control_buf):
-        self.log_control = LogEntry(control, entry_type='control')
-        self.log_control_dup = LogEntry(control_buf, entry_type='control')
-        # Select control and return data_area offset
-        # Logfile을 별도로 추출하는 부분에 대해서 고려하기
+    def control_area(self, control_buf):
+
+        def read_buf(io_buf):
+            buf = bytes()
+            for tmp in io_buf:
+                tmp.seek(0)
+                buf += tmp.read()
+            return buf
+
+        self.log_control = LogEntry(control_buf[0], entry_type='control')
+        self.log_control_dup = LogEntry(control_buf[1], entry_type='control')
+
+        self.log_data += read_buf(control_buf)
 
     def data_area(self, vol, cluster):
-        start = self.log_control.info['base_offset'] * cluster
-        next_lsn = struct.pack('<Q', self.log_control.info['next_lsn'])
-        offset, seq_no = struct.unpack('<2I', next_lsn)
-        next_alloc_offset = offset * cluster
+        start = self.log_control.info['start_offset']
+        size = self.log_control.info['end_offset'] - start
 
         buf = bytes()
-        vol.seek(start)
-        buf += vol.read(next_alloc_offset)
-        self.log_data = buf
+        vol.seek(start * cluster)
+        buf += vol.read(size * cluster)
+        self.log_data += buf
 
     def parse_logfile(self):
+
+        def check_overwritten(buf):
+            flag = False
+            ward = buf.tell()
+            if buf.read(4) == b'MLog':
+                flag = True
+            buf.seek(ward)
+            return flag
+
         records = []
         log_data = io.BytesIO(self.log_data)
-        log_data.seek(0x1000)  # skip 0 entry
+        log_data.seek(0x1000 * 2)  # skip control area entry
+        overwritten = check_overwritten(log_data)
+        if not overwritten:
+            log_data.read(0x1000) # HACK
 
         while True:
-        # for entry_buf in log_data.read(0x1000):  # Log Entry size: 0x1000
             buf = log_data.read(0x1000)
             if not buf:
                 break
             entry_buf = io.BytesIO(buf)
-            log_entry = LogEntry(entry_buf)
-            lsn = log_entry.entry_header['current_ml_lsn']
+            try:
+                log_entry = LogEntry(entry_buf)
+            except InvalidLogEntrySignatureError:
+                if not overwritten:
+                    break
+                else:
+                    exit(-2)
+            else:
+                lsn = log_entry.entry_header['current_ml_lsn']
 
-            for redo_record in log_entry.log_record:
-                for tx in redo_record.txc:
-                    record = dict()
-                    record['lsn'] = lsn
-                    record['opcode'] = REDO_OP[tx.header['opcode']]
-                    record['rec_mark'] = tx.header['rec_mark']
-                    record['seq_no'] = tx.header['seq_no']
-                    record['end_mark'] = tx.header['end_mark']
-                    records.append(record)
+                for redo_record in log_entry.log_record:
+                    for tx in redo_record.txc:
+                        record = dict()
+                        record['lsn'] = lsn
+                        record['opcode'] = REDO_OP[tx.header['opcode']]
+                        record['rec_mark'] = tx.header['rec_mark']
+                        record['seq_no'] = tx.header['seq_no']
+                        record['end_mark'] = tx.header['end_mark']
+                        records.append(record)
 
         return records
 
@@ -658,24 +690,28 @@ class ChangeJournal:
 
 class ReFSDirectory(Page):
 
-    def __init__(self, vol, cluster, LCNTuple):
+    def __init__(self, vol, cluster, refs, LCNTuple):
         super(ReFSDirectory, self).__init__(vol, cluster, LCNTuple)
 
+        self.offset = LCNTuple
         self.children = False
         self.children_table = dict()
         self.table = dict()
         self.timestamp_flag = False
+        self.refs = refs
 
         datum = self.buf.tell()
         self.parse_table_descriptor(self.buf, datum)
-        # if self.table_attribute['child_count'] > 0:
-            # pass
+
         rows = self.parse_row(self.buf, datum)
         self.parse_table(vol, rows)
 
+    def __repr__(self):
+        return f"REFS DIRECTORY <offset: {hex(self.offset[0] * 0x1000)}>"
+
     def parse_table(self, vol, rows):
         for row in rows:
-            refs_log.trace(f"Directory Row <Offset: {hex(row['offset'])}, "
+            refs_log.debug(f"Directory Row <Offset: {hex(row['offset'])}, "
                                  f"Length: {hex(row['header']['length'])}, "
                                  f"End: {hex(row['offset'] + row['header']['length'])}>")
             if 'value' in row:
@@ -691,21 +727,28 @@ class ReFSDirectory(Page):
                 if self.children:
                     row['value'] = dict(zip(LCN_CHKSUM_3FIELDS, struct.unpack(LCN_CHKSUM_3FORMAT, row['value'])))
                     self.refine(row['value'])
-                    refs_log.trace(f"Directory Internal node <flag: {hex(flag)}, "
-                                         f"file_type: {hex(file_type)}, "
-                                         f"name: {name}, "
-                                         f"node: {row['value']['LCNTuple']}>")
-                    self.children_table[row['key']] = ReFSDirectory(vol, self.cluster, row['value']['LCNTuple'])
+                    refs_log.trace(f"Directory Child Table <flag: {hex(flag)}, "
+                                         f"File_type: {hex(file_type)}, "
+                                         f"Name: {name}, "
+                                         f"Child Table LCNTuple: {row['value']['LCNTuple']}>")
+
+                    row['value']['LCNTuple'] = self.refs.translate_lcn(row['value']['LCNTuple'])
+                    self.children_table[row['key']] = ReFSDirectory(vol, self.cluster, self.refs, row['value']['LCNTuple'])
+                    # self.children_table[row['key']] = ReFSDirectory(vol, self.cluster, child_table_lcn, self.refs)
+                    # self.children_table[row['key']] = row['value']
                 else:
                     refs_log.trace(f"Entry <flag: {hex(flag)}, file_type: {hex(file_type)}, name: {name}>")
-                    if flag == REFS_V3_FLAG_LIVE:
+                    if flag == REFS_V3_FLAG_FILE_RECORD:
                         self.table[name.decode('utf-16')] = self.parse_entry(vol, file_type, row['value'])
 
-                    elif flag == REFS_V3_FLAG_INDEX:
+                    elif flag == REFS_V3_FLAG_DIR_INDEX:
                         self.parse_index(row['value'])
 
+                    elif flag == REFS_V3_FLAG_FILE_INDEX:
+                        refs_log.debug(f"File Index Entry? <flag: {hex(flag)}, file_type: {hex(file_type)}, name: {name}>")
+
                     else:
-                        refs_log.debug("Unknown flag")
+                        refs_log.trace(f"Unknown flag <flag: {hex(flag)}, file_type: {hex(file_type)}, name: {name}>")
 
     def parse_entry(self, vol, file_type, value):
 
@@ -809,6 +852,11 @@ class ReFSDirectory(Page):
         fields['EntryTime'] = win64le(fields['EntryTime'])
 
     def ls(self):
+
+        if self.children_table:
+            for v in self.children_table.values():
+                v.ls()
+
         if self.table:
             for name, metadata in self.table.items():
                 refs_log.debug(f"{name} {metadata}")

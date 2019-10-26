@@ -54,11 +54,11 @@ if REFS_LOG_HDR_SZ != 0x38:
 # Log Control Info
 REFS_LOG_CTRL_INFO_FORMAT = '<5Q16s2I2Q'
 REFS_LOG_CTRL_INFO_FIELDS = [
-    'unknown1', 'base_offset',
-    'unknown2', 'next_lsn',
-    'next_lsn?', 'uuid',
-    'control', 'unknown3',
-    'unknown4', 'unknown5'
+    'seq_no', 'start_offset',
+    'end_offset', 'next_lsn',
+    'next_lsn (dup)', 'uuid',
+    'control', 'unknown1',
+    'unknown2', 'unknown3'
 ]
 REFS_LOG_CTRL_INFO_SZ = struct.calcsize(REFS_LOG_CTRL_INFO_FORMAT)
 
