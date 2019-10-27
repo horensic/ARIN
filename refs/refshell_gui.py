@@ -45,6 +45,20 @@ class ThreadLogfile(QThread):
 
     def run(self):
 
+        flag, log_data = self.check_logfile()
+
+        pda = PDALogfile()
+        for lsn, redo_record in self.read_logfile(log_data=log_data, overwritten=flag):
+            refs_op = pda.transit(redo_record)
+            if refs_op:  # PDA recognized refs_op (YES)
+                row = self.set_row(None, refs_op, unknown=False)
+                self.logfile_record.emit(row)
+            else:        # (NO)
+                row = self.set_row(lsn, redo_record.header)
+                self.logfile_record.emit(row)
+
+    def check_logfile(self):
+
         def check_overwritten(buf):
             flag = False
             ward = buf.tell()
@@ -59,9 +73,12 @@ class ThreadLogfile(QThread):
         if not overwritten:
             log_data.read(0x1000)  # HACK
 
+        return (overwritten, log_data)
+
+    def read_logfile(self, log_data, overwritten):
+
         cnt = 0
         prog_v = 0
-        pda = PDALogfile()
 
         while True:
             refshell_log.trace(f"Entry Offset: {hex(log_data.tell())}")
@@ -82,42 +99,41 @@ class ThreadLogfile(QThread):
                 if cnt % 0x400 == 0:
                     prog_v += 1
                     self.progress_value.emit(prog_v)
+
                 lsn = log_entry.entry_header['current_ml_lsn']
 
                 for redo_record in log_entry.log_record:
                     for tx in redo_record.txc:
-                        record = dict()
-                        record['lsn'] = hex(lsn)
-                        record['event'] = ''
-                        record['tx_time'] = ''
-                        record['opcode'] = REDO_OP[tx.header['opcode']]
-                        record['rec_mark'] = hex(tx.header['rec_mark'])
-                        record['seq_no'] = hex(tx.header['seq_no'])
-                        record['end_mark'] = hex(tx.header['end_mark'])
-                        record['filename'] = ''
-                        record['ctime'] = ''
-                        record['mtime'] = ''
-                        record['chtime'] = ''
-                        record['atime'] = ''
-                        record['lcn'] = ''
-                        self.logfile_record.emit(record)
-                        op_info = pda.transit(tx)
-                        if op_info:
-                            event_record = dict()
-                            event_record['lsn'] = ''
-                            event_record['event'] = op_info['event']
-                            event_record['tx_time'] = op_info['tx_time']
-                            event_record['opcode'] = ''
-                            event_record['rec_mark'] = ''
-                            event_record['seq_no'] = ''
-                            event_record['end_mark'] = ''
-                            event_record['filename'] = op_info['filename']
-                            event_record['ctime'] = op_info['timestamp'][0]
-                            event_record['mtime'] = op_info['timestamp'][1]
-                            event_record['chtime'] = op_info['timestamp'][2]
-                            event_record['atime'] = op_info['timestamp'][3]
-                            event_record['lcn'] = op_info['file_lcn']
-                            self.logfile_record.emit(event_record)
+                        yield lsn, tx
+
+    def set_row(self, lsn, record, unknown=True):
+
+        def init_row():
+            row = dict()
+            field = ['lsn', 'event', 'tx_time', 'opcode', 'rec_mark', 'seq_no', 'end_mark',
+                     'filename', 'ctime', 'mtime', 'chtime', 'atime', 'lcn']
+            for key in field:
+                row[key] = ''
+            return row
+
+        row = init_row()
+        if unknown:  # record is tx.header
+            row['lsn'] = hex(lsn)
+            row['opcode'] = REDO_OP[record['opcode']]
+            row['rec_mark'] = record['rec_mark']
+            row['seq_no'] = hex(record['seq_no'])
+            row['end_mark'] = hex(record['end_mark'])
+        else:  # record is refs_op
+            row['event'] = record['event']
+            row['tx_time'] = record['tx_time']
+            row['filename'] = record['filename']
+            row['ctime'] = record['timestamp'][0]
+            row['mtime'] = record['timestamp'][1]
+            row['chtime'] = record['timestamp'][2]
+            row['atime'] = record['timestamp'][3]
+            if record['file_lcn']:
+                row['lcn'] = record['file_lcn']
+        return row
 
 
 class ThreadChgjrnl(QThread):
