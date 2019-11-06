@@ -23,7 +23,7 @@ from refs.volume import VolumeHandle
 from refs.refs_type import REDO_OP
 import refs.logger as logger
 from logfile.logfile import LogEntry
-from logfile.logfile_pda import PDALogfile
+from logfile.analyzer import ContextAnalyzer
 from logfile.error import *
 from chgjrnl.change_journal import USNRecordV3
 
@@ -46,15 +46,16 @@ class ThreadLogfile(QThread):
     def run(self):
 
         flag, log_data = self.check_logfile()
+        context_analyzer = ContextAnalyzer()
+        for lsn, tx in self.read_logfile(log_data=log_data, overwritten=flag):
 
-        pda = PDALogfile()
-        for lsn, redo_record in self.read_logfile(log_data=log_data, overwritten=flag):
-            refs_op = pda.transit(redo_record)
+            context_analyzer.read_context(tx)
+            refs_op = False
             if refs_op:  # PDA recognized refs_op (YES)
                 row = self.set_row(None, refs_op, unknown=False)
                 self.logfile_record.emit(row)
             else:        # (NO)
-                row = self.set_row(lsn, redo_record.header)
+                row = self.set_row(lsn, tx.header)
                 self.logfile_record.emit(row)
 
     def check_logfile(self):
@@ -120,7 +121,7 @@ class ThreadLogfile(QThread):
         if unknown:  # record is tx.header
             row['lsn'] = hex(lsn)
             row['opcode'] = REDO_OP[record['opcode']]
-            row['rec_mark'] = record['rec_mark']
+            row['rec_mark'] = hex(record['rec_mark'])
             row['seq_no'] = hex(record['seq_no'])
             row['end_mark'] = hex(record['end_mark'])
         else:  # record is refs_op

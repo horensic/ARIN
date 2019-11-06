@@ -75,3 +75,17 @@ REFS_REDO_REC_HDR_SZ = struct.calcsize(REFS_REDO_REC_HDR_FORMAT)
 if REFS_REDO_REC_HDR_SZ != 0x38:
     print("REFS Transaction context header size not match!")
     exit(-1)
+
+# Transaction Target Object
+REFS_TX_TARGET_KEY_FORMAT = '<3I2Q'
+REFS_TX_TARGET_KEY_FIELDS = [
+    '_unknown1', 'obj_type', '_unknown2',
+    'parent_id', 'obj_id'
+]
+REFS_TX_TARGET_KEY_SZ = struct.calcsize(REFS_TX_TARGET_KEY_FORMAT)
+
+REFS_FILE_REC_KEY_FORMAT = '<4I'
+REFS_FILE_REC_KEY_FIELDS = [
+    '_unknown1', 'obj_type', '_unknown2', 'type'
+]
+REFS_FILE_REC_KEY_SZ = struct.calcsize(REFS_FILE_REC_KEY_FORMAT)

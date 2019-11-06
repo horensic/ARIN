@@ -208,11 +208,26 @@
          <layout class="QVBoxLayout" name="verticalLayout_7">
           <item>
            <widget class="QTableWidget" name="tb_logfile">
-            <property name="alternatingRowColors">
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="dragEnabled">
              <bool>false</bool>
             </property>
-            <property name="sortingEnabled">
+            <property name="dragDropOverwriteMode">
+             <bool>false</bool>
+            </property>
+            <property name="alternatingRowColors">
              <bool>true</bool>
+            </property>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
+            </property>
+            <property name="textElideMode">
+             <enum>Qt::ElideMiddle</enum>
+            </property>
+            <property name="sortingEnabled">
+             <bool>false</bool>
             </property>
             <attribute name="verticalHeaderVisible">
              <bool>false</bool>
