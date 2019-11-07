@@ -24,7 +24,7 @@ class PDALogRecord:
 
     P_FILE_CREATE = [0x1, 0x4, 0x10, 0x0, 0x4, 0x1, 0x0]
     P_FILE_DELETE = [0xF, 0x2, 0xF, 0x2]
-    p_FILE_RENAME = [0x2, 0x5, 0x1]
+    P_FILE_RENAME = [0x2, 0x5, 0x1]
     P_FILE_MOVE_1 = [0x2, 0x5, 0x1, 0x4, 0x10, 0x4, 0x1]
     P_FILE_MOVE_2 = [0x2, 0x5, 0x2, 0x4, 0x1]
     P_FILE_MOVE_3 = [0x2, 0x5, 0x2, 0x1, 0x4, 0x10, 0x4, 0x1, 0x4]
@@ -67,10 +67,18 @@ class TransactionDataParser:
         obj_info = dict(zip(REFS_TX_TARGET_KEY_FIELDS, struct.unpack(REFS_TX_TARGET_KEY_FORMAT, buf)))
         return obj_info
 
-    def parse_index_name(self, buf):
-        raise NotImplementedError
+    def parse_file_idx_key(self, buf):
+        file_idx_key = dict(zip(REFS_FILE_IDX_KEY_FIELDS, struct.unpack(REFS_FILE_IDX_KEY_FORMAT, buf)))
+        return file_idx_key
 
-    def parse_name(self, buf):
+    def parse_index_name(self, buf):
+        index_name_buf = io.BytesIO(buf)
+        index_name_buf.seek(0x8)
+        _, name_len = struct.unpack('<2H', index_name_buf.read(0x4))
+        index_name =  index_name_buf.read(name_len).decode('utf-16')
+        return index_name
+
+    def parse_file_rec_key(self, buf):
         if len(buf) == 0x10:
             return 'Current Directory Index'
         name_buf = io.BytesIO(buf)
@@ -103,9 +111,6 @@ class TransactionDataParser:
 
         return timestamp
 
-    def parse_fileid(self, buf):
-        pass
-
     def parse_lcn(self, buf):
         tx_data = io.BytesIO(buf)
         lcn = struct.unpack('<I', tx_data.read(4))[0]
@@ -135,14 +140,13 @@ class TransactionParser(TransactionDataParser):
             0xF: self.redo_delete_table,
             0x10: self.redo_value_as_key
         }
-
         REDO_OP_DISPATCH_TABLE[self.opcode](redo_tx, key_count, value_count)
 
     # Opcode = 0x0
     def open_table(self, redo_tx, key_count, value_count):
         if key_count > 0:
             key_var = ['obj_info', 'name', 'attr']
-            key_func = [self.check_object, self.parse_name, self.parse_attr]
+            key_func = [self.check_object, self.parse_file_rec_key, self.parse_attr]
             for i in range(key_count):
                 setattr(self, key_var[i], key_func[i](redo_tx.transaction[i]))
         else:
@@ -152,9 +156,19 @@ class TransactionParser(TransactionDataParser):
     def redo_insert_row(self, redo_tx, key_count, value_count):
         if key_count > 0:
             key_var = ['obj_info', 'name', 'attr']
-            key_func = [self.check_object, self.parse_name, self.parse_attr]
+            key_func = [self.check_object, self.parse_file_rec_key, self.parse_attr]
             for i in range(key_count):
                 setattr(self, key_var[i], key_func[i](redo_tx.transaction[i]))
+            if key_count == 0x1:
+                if getattr(self, 'obj_info')['obj_id'] >= 0x600:
+                    value_var = ['obj_info', 'name', 'attr']
+                    value_func = [self.parse_file_idx_key, self.parse_index_name]
+                    for i in range(value_count):
+                        setattr(self, value_var[i], value_func[i](redo_tx.transaction[key_count+i]))
+                else:
+                    pass
+            elif key_count == 0x2:
+                pass
         else:
             # raise NotImplementedError
             pass
@@ -167,7 +181,7 @@ class TransactionParser(TransactionDataParser):
     def redo_update_row(self, redo_tx, key_count, value_count):
         if key_count > 0:
             key_var = ['obj_info', 'name', 'attr']
-            key_func = [self.check_object, self.parse_name, self.parse_attr]
+            key_func = [self.check_object, self.parse_file_rec_key, self.parse_attr]
             for i in range(key_count):
                 setattr(self, key_var[i], key_func[i](redo_tx.transaction[i]))
         else:
@@ -177,7 +191,7 @@ class TransactionParser(TransactionDataParser):
     def redo_update_data_with_root(self, redo_tx, key_count, value_count):
         if key_count > 0:
             key_var = ['obj_info', 'name', 'attr']
-            key_func = [self.check_object, self.parse_name, self.parse_attr]
+            key_func = [self.check_object, self.parse_file_rec_key, self.parse_attr]
 
             for i in range(key_count):
                 setattr(self, key_var[i], key_func[i](redo_tx.transaction[i]))
@@ -185,7 +199,7 @@ class TransactionParser(TransactionDataParser):
             if value_count == 1:
                 self.parse_timestamp(redo_tx.transaction[key_count])
             elif value_count == 2:
-                self.parse_fileid(redo_tx.transaction[key_count])
+                self.parse_file_idx_key(redo_tx.transaction[key_count])
                 # TODO: self.parse_~~~(redo_tx.transaction[key_count+1])
                 pass
         else:
@@ -213,7 +227,7 @@ class TransactionParser(TransactionDataParser):
     def redo_set_range_state(self, redo_tx, key_count, value_count):
         if key_count > 0:
             key_var = ['obj_info', 'name', 'attr']
-            key_func = [self.check_object, self.parse_name, self.parse_attr]
+            key_func = [self.check_object, self.parse_file_rec_key, self.parse_attr]
 
             for i in range(key_count):
                 setattr(self, key_var[i], key_func[i](redo_tx.transaction[i]))

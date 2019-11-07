@@ -89,3 +89,9 @@ REFS_FILE_REC_KEY_FIELDS = [
     '_unknown1', 'obj_type', '_unknown2', 'type'
 ]
 REFS_FILE_REC_KEY_SZ = struct.calcsize(REFS_FILE_REC_KEY_FORMAT)
+
+REFS_FILE_IDX_KEY_FORMAT = '<2I2Q'
+REFS_FILE_IDX_KEY_FIELDS = [
+    'type', '_unknown1', 'file_seq_no', '_unknown2'
+]
+REFS_FILE_IDX_KEY_SZ = struct.calcsize(REFS_FILE_IDX_KEY_FORMAT)
