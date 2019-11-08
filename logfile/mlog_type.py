@@ -95,3 +95,8 @@ REFS_FILE_IDX_KEY_FIELDS = [
     'type', '_unknown1', 'file_seq_no', '_unknown2'
 ]
 REFS_FILE_IDX_KEY_SZ = struct.calcsize(REFS_FILE_IDX_KEY_FORMAT)
+
+REFS_FILE_ALLOC_INFO_FORMAT = '<3I'
+REFS_FILE_ALLOC_INFO_FIELDS = [
+    'lcn', '_unknown1', 'cluster_count'
+]

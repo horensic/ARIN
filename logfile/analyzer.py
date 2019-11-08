@@ -66,8 +66,18 @@ class OperationParser:
         # raise NotImplementedError
 
     def refs_op_file_allocate(self, record):
-        pass
-        # raise NotImplementedError
+        analyzer_log.trace("Called refs_op_file_allocate")
+        operation = {
+            'event':'FILE ALLOCATE'
+        }
+        allocation_info = TransactionParser(record[0])
+        if hasattr(allocation_info, 'obj_info') and hasattr(allocation_info, 'file_rec_key'):
+            operation['path'] = allocation_info.obj_info['obj_id']
+            operation['filename'] = allocation_info.file_rec_key['name']
+        if hasattr(allocation_info, 'alloc_info'):
+            operation['file_lcn'] = allocation_info.alloc_info['lcn']
+
+        return operation
 
     def refs_op_file_free(self, record):
         pass
@@ -97,7 +107,6 @@ class PDALogRecord(OperationParser):
             print("Not Match: ", self.opcode)
             # self.recognize_operation()
             return None
-
 
     def recognize_operation(self):
         raise NotImplementedError
@@ -172,10 +181,9 @@ class TransactionDataParser:
 
         return timestamp
 
-    def parse_lcn(self, buf):
-        tx_data = io.BytesIO(buf)
-        lcn = struct.unpack('<I', tx_data.read(4))[0]
-        return lcn
+    def parse_allocation_info(self, buf):
+        allocation_info = dict(zip(REFS_FILE_ALLOC_INFO_FIELDS, struct.unpack(REFS_FILE_ALLOC_INFO_FORMAT, buf)))
+        return allocation_info
 
 
 class TransactionParser(TransactionDataParser):
@@ -292,7 +300,21 @@ class TransactionParser(TransactionDataParser):
 
     # Opcode = 0x6
     def redo_allocate(self, redo_tx, key_count, value_count):
-        raise NotImplementedError
+        analyzer_log.trace("Called allocate")
+        if key_count > 0:
+            key_var = ['obj_info', 'file_rec_key', 'attr']
+            key_func = [self.check_object, self.parse_file_rec_key, self.parse_attr]
+
+            for i in range(key_count):
+                setattr(self, key_var[i], key_func[i](redo_tx.transaction[i]))
+
+            if value_count == 3:
+                self.alloc_info = self.parse_allocation_info(redo_tx.transaction[key_count])
+        else:
+            if value_count == 3:
+                self.alloc_info = self.parse_allocation_info(redo_tx.transaction[key_count])
+            else:
+                raise NotImplementedError
 
     # Opcode = 0x7
     def redo_free(self, redo_tx, key_count, value_count):
@@ -382,16 +404,14 @@ class ContextAnalyzer:
                 return None
         else:
             context = TransactionParser(self.context[0])
-            # Detail 항목으로 어떤 단일 트랜잭션 작업이 있었는지 표현할 필요가 있음
-            # 작업 대상 object, 필요에 따라서 파일명, 필요에 따라서 타임스탬프만 넣어주면 됨
             recognized_context = dict()
             if hasattr(context, 'obj_info'):
-                print(f"Context <Opcode: {hex(context.opcode)}, ObjID: {hex(context.obj_info['obj_id'])}>")
+                analyzer_log.trace(f"Context <Opcode: {hex(context.opcode)}, ObjID: {hex(context.obj_info['obj_id'])}>")
                 recognized_context['path'] = context.obj_info['obj_id']
                 recognized_context['desc'] = context.desc
             if hasattr(context, 'file_rec_key'):
                 recognized_context['filename'] = context.file_rec_key['name']
                 return recognized_context
             else:
-                print(self.opcode)
+                analyzer_log.trace(f"Unknown Context{self.opcode}")
                 return None

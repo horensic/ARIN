@@ -129,6 +129,7 @@ class ThreadLogfile(QThread):
                 row['filename'] = record['filename']
             if 'event' in record:
                 row['event'] = record['event']
+            if 'tx_time' in record:
                 row['tx_time'] = str(record['tx_time'])
             if 'desc' in record:
                 row['desc'] = record['desc']
