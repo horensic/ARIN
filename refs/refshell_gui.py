@@ -49,6 +49,20 @@ class ThreadLogfile(QThread):
         context_analyzer = ContextAnalyzer()
 
         for lsn, tx in self.read_logfile(log_data=log_data, overwritten=flag):
+            complete = context_analyzer.read_context(tx)
+            if complete:
+                refs_op = context_analyzer.process_context()
+                if refs_op:
+                    row = self.set_row(None, refs_op, unknown=False)
+                    self.logfile_record.emit(row)
+                else:
+                    for tx in context_analyzer.context:
+                        row = self.set_row(lsn, tx.header)
+                        self.logfile_record.emit(row)
+                context_analyzer.clean()
+            else:
+                continue
+            """
             refs_op = context_analyzer.read_context(tx)
             if refs_op:  # PDA recognized refs_op (YES)
                 row = self.set_row(None, refs_op, unknown=False)
@@ -56,6 +70,7 @@ class ThreadLogfile(QThread):
             else:     # (NO)
                 row = self.set_row(lsn, tx.header)
                 self.logfile_record.emit(row)
+            """
 
     def check_logfile(self):
 

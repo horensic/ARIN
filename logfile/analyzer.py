@@ -361,13 +361,13 @@ class ContextAnalyzer:
     def __init__(self):
         self.context = []
         self.opcode = []
-        self.recognized = False
 
     def read_context(self, txc):
         start = False
         if txc.header['rec_mark'] == 0x0:
             self.context.append(txc)
             self.opcode.append(txc.header['opcode'])
+            return False
         else:
             if txc.header['rec_mark'] & 0x1:  # Transaction Start
                 self.context.append(txc)
@@ -383,17 +383,11 @@ class ContextAnalyzer:
                 if not start:
                     self.context.append(txc)
                     self.opcode.append(txc.header['opcode'])
+                return True
 
-                res = self.preprocess_context()
-                self.context = []
-                self.opcode = []
-                if isinstance(res, dict):  # 파일 작업을 인식한 경우
-                    return res
-                else:  # 파일 작업을 인식하지 못한 경우
-                    pass
+            return False
 
-
-    def preprocess_context(self):
+    def process_context(self):
 
         if len(self.opcode) > 1:
             pda = PDALogRecord(self.context, self.opcode)
@@ -413,5 +407,9 @@ class ContextAnalyzer:
                 recognized_context['filename'] = context.file_rec_key['name']
                 return recognized_context
             else:
-                analyzer_log.trace(f"Unknown Context{self.opcode}")
+                analyzer_log.trace(f"Unknown Context: {self.opcode}")
                 return None
+
+    def clean(self):
+        self.context = []
+        self.opcode = []
