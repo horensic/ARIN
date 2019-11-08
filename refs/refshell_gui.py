@@ -47,10 +47,9 @@ class ThreadLogfile(QThread):
 
         flag, log_data = self.check_logfile()
         context_analyzer = ContextAnalyzer()
-        for lsn, tx in self.read_logfile(log_data=log_data, overwritten=flag):
 
-            context_analyzer.read_context(tx)
-            refs_op = False
+        for lsn, tx in self.read_logfile(log_data=log_data, overwritten=flag):
+            refs_op = context_analyzer.read_context(tx)
             if refs_op:  # PDA recognized refs_op (YES)
                 row = self.set_row(None, refs_op, unknown=False)
                 self.logfile_record.emit(row)
@@ -126,14 +125,14 @@ class ThreadLogfile(QThread):
             row['end_mark'] = hex(record['end_mark'])
         else:  # record is refs_op
             row['event'] = record['event']
-            row['tx_time'] = record['tx_time']
+            row['tx_time'] = str(record['tx_time'])
             row['filename'] = record['filename']
-            row['ctime'] = record['timestamp'][0]
-            row['mtime'] = record['timestamp'][1]
-            row['chtime'] = record['timestamp'][2]
-            row['atime'] = record['timestamp'][3]
-            if record['file_lcn']:
-                row['lcn'] = record['file_lcn']
+            row['ctime'] = str(record['timestamp'][0])
+            row['mtime'] = str(record['timestamp'][1])
+            row['chtime'] = str(record['timestamp'][2])
+            row['atime'] = str(record['timestamp'][3])
+            if 'file_lcn' in record:
+                row['lcn'] = str(record['file_lcn'])
         return row
 
 
