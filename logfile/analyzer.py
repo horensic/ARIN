@@ -49,7 +49,7 @@ class OperationParser:
         standard_info = TransactionParser(record[4])
 
         if hasattr(index, 'obj_info') and hasattr(index, 'index_name'):
-            operation['parent'] = index.obj_info['obj_id']
+            operation['path'] = index.obj_info['obj_id']
             operation['filename'] = index.index_name
         if hasattr(standard_info, 'timestamp'):
             operation['timestamp'] = standard_info.timestamp
@@ -96,6 +96,8 @@ class PDALogRecord(OperationParser):
         else:
             print("Not Match: ", self.opcode)
             # self.recognize_operation()
+            return None
+
 
     def recognize_operation(self):
         raise NotImplementedError
@@ -113,6 +115,7 @@ class PDALogRecord(OperationParser):
         try:
             refs_op = REFS_OP_DISPATCH_TABLE[key](record)
         except KeyError:
+            # 패턴에 대한 처리 함수를 작성하지 못하였음
             print('KeyError', key)
         else:
             return refs_op
@@ -203,6 +206,7 @@ class TransactionParser(TransactionDataParser):
     # Opcode = 0x0
     def open_table(self, redo_tx, key_count, value_count):
         analyzer_log.trace("Called open_table")
+        self.desc = 'open table'
         if key_count > 0:
             key_var = ['obj_info', 'name', 'attr']
             key_func = [self.check_object, self.parse_file_rec_key, self.parse_attr]
@@ -214,6 +218,7 @@ class TransactionParser(TransactionDataParser):
     # Opcode = 0x1
     def redo_insert_row(self, redo_tx, key_count, value_count):
         analyzer_log.trace("Called redo_insert_row")
+        self.desc = 'insert row'
         if key_count > 0:
             key_var = ['obj_info', 'file_rec_key', 'attr']
             key_func = [self.check_object, self.parse_file_rec_key, self.parse_attr]
@@ -240,6 +245,7 @@ class TransactionParser(TransactionDataParser):
     # Opcode = 0x3
     def redo_update_row(self, redo_tx, key_count, value_count):
         analyzer_log.trace("Called redo_update_row")
+        self.desc = 'update row'
         if key_count > 0:
             key_var = ['obj_info', 'file_rec_key', 'attr']
             key_func = [self.check_object, self.parse_file_rec_key, self.parse_attr]
@@ -251,6 +257,7 @@ class TransactionParser(TransactionDataParser):
     # Opcode = 0x4
     def redo_update_data_with_root(self, redo_tx, key_count, value_count):
         analyzer_log.trace("Called update_data_with_root")
+        self.desc = 'update data'
         if key_count > 0:
             key_var = ['obj_info', 'file_rec_key', 'attr']
             key_func = [self.check_object, self.parse_file_rec_key, self.parse_attr]
@@ -294,6 +301,7 @@ class TransactionParser(TransactionDataParser):
     # Opcode = 0x8
     def redo_set_range_state(self, redo_tx, key_count, value_count):
         analyzer_log.trace("Called redo_set_range_state")
+        self.desc = 'set range state'
         if key_count > 0:
             key_var = ['obj_info', 'file_rec_key', 'attr']
             key_func = [self.check_object, self.parse_file_rec_key, self.parse_attr]
@@ -331,6 +339,7 @@ class ContextAnalyzer:
     def __init__(self):
         self.context = []
         self.opcode = []
+        self.recognized = False
 
     def read_context(self, txc):
         start = False
@@ -353,12 +362,13 @@ class ContextAnalyzer:
                     self.context.append(txc)
                     self.opcode.append(txc.header['opcode'])
 
-                refs_op = self.preprocess_context()
+                res = self.preprocess_context()
                 self.context = []
                 self.opcode = []
-                if refs_op is not None:
-                    return refs_op
-
+                if isinstance(res, dict):  # 파일 작업을 인식한 경우
+                    return res
+                else:  # 파일 작업을 인식하지 못한 경우
+                    pass
 
 
     def preprocess_context(self):
@@ -366,11 +376,22 @@ class ContextAnalyzer:
         if len(self.opcode) > 1:
             pda = PDALogRecord(self.context, self.opcode)
             recognized_context = pda.recognize_context()
-            if recognized_context is not None:
+            if recognized_context is not None:  # 패턴을 찾은 경우
                 return recognized_context
+            else:  # 패턴을 찾지 못한 경우
+                return None
         else:
             context = TransactionParser(self.context[0])
+            # Detail 항목으로 어떤 단일 트랜잭션 작업이 있었는지 표현할 필요가 있음
+            # 작업 대상 object, 필요에 따라서 파일명, 필요에 따라서 타임스탬프만 넣어주면 됨
+            recognized_context = dict()
             if hasattr(context, 'obj_info'):
                 print(f"Context <Opcode: {hex(context.opcode)}, ObjID: {hex(context.obj_info['obj_id'])}>")
+                recognized_context['path'] = context.obj_info['obj_id']
+                recognized_context['desc'] = context.desc
+            if hasattr(context, 'file_rec_key'):
+                recognized_context['filename'] = context.file_rec_key['name']
+                return recognized_context
             else:
                 print(self.opcode)
+                return None

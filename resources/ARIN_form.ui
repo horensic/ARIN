@@ -264,6 +264,14 @@
             </column>
             <column>
              <property name="text">
+              <string>Description</string>
+             </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
+             </property>
+            </column>
+            <column>
+             <property name="text">
               <string>Redo Op</string>
              </property>
              <property name="textAlignment">
@@ -289,6 +297,14 @@
             <column>
              <property name="text">
               <string>End mark</string>
+             </property>
+             <property name="textAlignment">
+              <set>AlignCenter</set>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Path</string>
              </property>
              <property name="textAlignment">
               <set>AlignCenter</set>

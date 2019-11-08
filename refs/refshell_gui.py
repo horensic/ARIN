@@ -53,7 +53,7 @@ class ThreadLogfile(QThread):
             if refs_op:  # PDA recognized refs_op (YES)
                 row = self.set_row(None, refs_op, unknown=False)
                 self.logfile_record.emit(row)
-            else:        # (NO)
+            else:     # (NO)
                 row = self.set_row(lsn, tx.header)
                 self.logfile_record.emit(row)
 
@@ -110,8 +110,8 @@ class ThreadLogfile(QThread):
 
         def init_row():
             row = dict()
-            field = ['lsn', 'event', 'tx_time', 'opcode', 'rec_mark', 'seq_no', 'end_mark',
-                     'filename', 'ctime', 'mtime', 'chtime', 'atime', 'lcn']
+            field = ['lsn', 'event', 'desc', 'tx_time', 'opcode', 'rec_mark', 'seq_no', 'end_mark',
+                     'path', 'filename', 'ctime', 'mtime', 'chtime', 'atime', 'lcn']
             for key in field:
                 row[key] = ''
             return row
@@ -124,13 +124,19 @@ class ThreadLogfile(QThread):
             row['seq_no'] = hex(record['seq_no'])
             row['end_mark'] = hex(record['end_mark'])
         else:  # record is refs_op
-            row['event'] = record['event']
-            row['tx_time'] = str(record['tx_time'])
-            row['filename'] = record['filename']
-            row['ctime'] = str(record['timestamp'][0])
-            row['mtime'] = str(record['timestamp'][1])
-            row['chtime'] = str(record['timestamp'][2])
-            row['atime'] = str(record['timestamp'][3])
+            row['path'] = hex(record['path'])
+            if 'filename' in record:
+                row['filename'] = record['filename']
+            if 'event' in record:
+                row['event'] = record['event']
+                row['tx_time'] = str(record['tx_time'])
+            if 'desc' in record:
+                row['desc'] = record['desc']
+            if 'timestamp' in record:
+                row['ctime'] = str(record['timestamp'][0])
+                row['mtime'] = str(record['timestamp'][1])
+                row['chtime'] = str(record['timestamp'][2])
+                row['atime'] = str(record['timestamp'][3])
             if 'file_lcn' in record:
                 row['lcn'] = str(record['file_lcn'])
         return row

@@ -283,16 +283,18 @@ class Arin(QMainWindow, form_class):
         self.tb_logfile.setItem(row_pos, 0, QTableWidgetItem(record['lsn']))
         self.tb_logfile.setItem(row_pos, 1, QTableWidgetItem(record['tx_time']))
         self.tb_logfile.setItem(row_pos, 2, QTableWidgetItem(record['event']))
-        self.tb_logfile.setItem(row_pos, 3, QTableWidgetItem(record['opcode']))
-        self.tb_logfile.setItem(row_pos, 4, QTableWidgetItem(record['rec_mark']))
-        self.tb_logfile.setItem(row_pos, 5, QTableWidgetItem(record['seq_no']))
-        self.tb_logfile.setItem(row_pos, 6, QTableWidgetItem(record['end_mark']))
-        self.tb_logfile.setItem(row_pos, 7, QTableWidgetItem(record['filename']))  # File Name
-        self.tb_logfile.setItem(row_pos, 8, QTableWidgetItem(record['ctime']))  # Creation Time
-        self.tb_logfile.setItem(row_pos, 9, QTableWidgetItem(record['mtime']))  # Modified Time
-        self.tb_logfile.setItem(row_pos, 10, QTableWidgetItem(record['chtime']))  # Changed Time
-        self.tb_logfile.setItem(row_pos, 11, QTableWidgetItem(record['atime']))  # Accessed Time
-        self.tb_logfile.setItem(row_pos, 12, QTableWidgetItem(record['lcn'])) # File LCN
+        self.tb_logfile.setItem(row_pos, 3, QTableWidgetItem(record['desc']))
+        self.tb_logfile.setItem(row_pos, 4, QTableWidgetItem(record['opcode']))
+        self.tb_logfile.setItem(row_pos, 5, QTableWidgetItem(record['rec_mark']))
+        self.tb_logfile.setItem(row_pos, 6, QTableWidgetItem(record['seq_no']))
+        self.tb_logfile.setItem(row_pos, 7, QTableWidgetItem(record['end_mark']))
+        self.tb_logfile.setItem(row_pos, 8, QTableWidgetItem(record['path']))
+        self.tb_logfile.setItem(row_pos, 9, QTableWidgetItem(record['filename']))  # File Name
+        self.tb_logfile.setItem(row_pos, 10, QTableWidgetItem(record['ctime']))  # Creation Time
+        self.tb_logfile.setItem(row_pos, 11, QTableWidgetItem(record['mtime']))  # Modified Time
+        self.tb_logfile.setItem(row_pos, 12, QTableWidgetItem(record['chtime']))  # Changed Time
+        self.tb_logfile.setItem(row_pos, 13, QTableWidgetItem(record['atime']))  # Accessed Time
+        self.tb_logfile.setItem(row_pos, 14, QTableWidgetItem(record['lcn'])) # File LCN
 
     def _parse_chgjrnl(self):
         if self.sh is None:
